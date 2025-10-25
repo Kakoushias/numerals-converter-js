@@ -133,9 +133,10 @@ async function registerRoutes() {
       return response;
     } catch (error) {
       fastify.log.error({ error }, 'Error converting Arabic to Roman');
-      return reply.status(400).send({
+      reply.code(400);
+      return {
         error: error instanceof Error ? error.message : 'Conversion failed'
-      });
+      };
     }
   });
 
@@ -157,9 +158,10 @@ async function registerRoutes() {
       return response;
     } catch (error) {
       fastify.log.error({ error }, 'Error converting Roman to Arabic');
-      return reply.status(400).send({
+      reply.code(400);
+      return {
         error: error instanceof Error ? error.message : 'Invalid Roman numeral'
-      });
+      };
     }
   });
 
@@ -175,9 +177,10 @@ async function registerRoutes() {
       return result;
     } catch (error) {
       fastify.log.error({ error }, 'Error retrieving conversions');
-      return reply.status(500).send({
+      reply.code(500);
+      return {
         error: 'Failed to retrieve conversions'
-      });
+      };
     }
   });
 
@@ -189,9 +192,10 @@ async function registerRoutes() {
       return response;
     } catch (error) {
       fastify.log.error({ error }, 'Error deleting conversions');
-      return reply.status(500).send({
+      reply.code(500);
+      return {
         error: 'Failed to delete conversions'
-      });
+      };
     }
   });
 }
@@ -201,9 +205,9 @@ fastify.setErrorHandler((error, _request, reply) => {
   fastify.log.error({ error }, 'Unhandled error');
   
   if (error.statusCode) {
-    reply.status(error.statusCode);
+    reply.code(error.statusCode);
   } else {
-    reply.status(500);
+    reply.code(500);
   }
   
   return {

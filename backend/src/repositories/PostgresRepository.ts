@@ -50,11 +50,16 @@ export class PostgresRepository implements IConverterRepository {
   async save(arabic: number, roman: string): Promise<void> {
     const client = await this.pool.connect();
     try {
+      await client.query('BEGIN');
       await client.query(
         `INSERT INTO conversions (arabic, roman) VALUES ($1, $2) 
          ON CONFLICT (arabic) DO NOTHING`,
         [arabic, roman]
       );
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
     } finally {
       client.release();
     }

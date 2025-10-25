@@ -20,16 +20,49 @@ export class RedisRepository implements IConverterRepository {
   }
 
   async save(arabic: number, roman: string): Promise<void> {
-    const pipeline = this.redis.pipeline();
+    // Lua script for atomic check-and-set operation
+    // First-write-wins: only sets values if both keys don't exist
+    const luaScript = `
+      local arabicKey = KEYS[1]
+      local romanKey = KEYS[2]
+      local sortedSetKey = KEYS[3]
+      local arabicValue = ARGV[1]
+      local romanValue = ARGV[2]
+      local entry = ARGV[3]
+      
+      -- Check if either key already exists (bidirectional conflict check)
+      local existingArabic = redis.call('GET', arabicKey)
+      local existingRoman = redis.call('GET', romanKey)
+      
+      if existingArabic == false and existingRoman == false then
+        -- Atomic insert: all operations succeed or none
+        redis.call('SET', arabicKey, romanValue)
+        redis.call('SET', romanKey, arabicValue)
+        redis.call('ZADD', sortedSetKey, arabicValue, entry)
+        return 1  -- Success
+      else
+        -- Conflict detected - key already exists (first-write-wins)
+        return 0  -- No operation performed
+      end
+    `;
     
-    // Store bidirectional mappings
-    pipeline.set(`${this.arabicKeyPrefix}${arabic}`, roman);
-    pipeline.set(`${this.romanKeyPrefix}${roman}`, arabic);
+    const arabicKey = `${this.arabicKeyPrefix}${arabic}`;
+    const romanKey = `${this.romanKeyPrefix}${roman}`;
+    const entry = `${arabic}:${roman}`;
     
-    // Add to sorted set for pagination (using arabic number as score)
-    pipeline.zadd(this.allConversionsKey, arabic, `${arabic}:${roman}`);
+    await this.redis.eval(
+      luaScript,
+      3, // number of keys
+      arabicKey,
+      romanKey,
+      this.allConversionsKey,
+      arabic.toString(),
+      roman,
+      entry
+    );
     
-    await pipeline.exec();
+    // Result is 1 if inserted, 0 if conflict (silently ignored for first-write-wins)
+    // We don't throw an error on conflict as per first-write-wins strategy
   }
 
   async findByArabic(arabic: number): Promise<string | null> {

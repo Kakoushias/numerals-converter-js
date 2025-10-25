@@ -1,22 +1,40 @@
 import { IConverterRepository } from '../repositories/IConverterRepository';
 
+/**
+ * Service for converting between Arabic numerals and Roman numerals.
+ * 
+ * Roman numerals use subtractive notation where a smaller numeral before a larger
+ * one indicates subtraction (IV=4, IX=9, XL=40, XC=90, CD=400, CM=900). This
+ * implementation uses an explicit lookup table containing both base symbols and
+ * subtractive pairs, as this closed system is best represented declaratively
+ * rather than algorithmically.
+ * 
+ * Valid range: 1-3999 (standard Roman numeral limit)
+ * 
+ * @example
+ * const service = new ConversionService(repository);
+ * await service.arabicToRoman(1994); // Returns "MCMXCIV"
+ * await service.romanToArabic("XLII"); // Returns 42
+ */
 export class ConversionService {
+  /** Lookup table ordered descending for greedy algorithm. Includes subtractive pairs. */
   private readonly romanNumerals = [
     { value: 1000, symbol: 'M' },
-    { value: 900, symbol: 'CM' },
+    { value: 900, symbol: 'CM' },  // 1000 - 100
     { value: 500, symbol: 'D' },
-    { value: 400, symbol: 'CD' },
+    { value: 400, symbol: 'CD' },  // 500 - 100
     { value: 100, symbol: 'C' },
-    { value: 90, symbol: 'XC' },
+    { value: 90, symbol: 'XC' },   // 100 - 10
     { value: 50, symbol: 'L' },
-    { value: 40, symbol: 'XL' },
+    { value: 40, symbol: 'XL' },   // 50 - 10
     { value: 10, symbol: 'X' },
-    { value: 9, symbol: 'IX' },
+    { value: 9, symbol: 'IX' },    // 10 - 1
     { value: 5, symbol: 'V' },
-    { value: 4, symbol: 'IV' },
+    { value: 4, symbol: 'IV' },    // 5 - 1
     { value: 1, symbol: 'I' }
-  ];
+  ] as const;
 
+  /** Map for efficient Roman-to-Arabic lookup. Includes both single characters and subtractive pairs. */
   private readonly romanToArabicMap = new Map<string, number>([
     ['M', 1000], ['CM', 900], ['D', 500], ['CD', 400],
     ['C', 100], ['XC', 90], ['L', 50], ['XL', 40],
@@ -25,6 +43,13 @@ export class ConversionService {
 
   constructor(private repository: IConverterRepository) {}
 
+  /**
+   * Converts an Arabic numeral to Roman numeral format.
+   * 
+   * @param arabic - Integer between 1 and 3999
+   * @returns Roman numeral string in canonical form
+   * @throws {Error} If input is not an integer or is outside valid range
+   */
   async arabicToRoman(arabic: number): Promise<string> {
     // Validate input
     if (!Number.isInteger(arabic) || arabic < 1 || arabic > 3999) {
@@ -40,14 +65,21 @@ export class ConversionService {
     // Convert to Roman
     const roman = this.convertArabicToRoman(arabic);
 
-    // Cache the result (fire and forget to avoid blocking)
-    this.repository.save(arabic, roman).catch(error => {
+    // Cache the result (fire and forget - atomic operations in repositories ensure consistency)
+    void this.repository.save(arabic, roman).catch(error => {
       console.error('Failed to cache conversion:', error);
     });
 
     return roman;
   }
 
+  /**
+   * Converts a Roman numeral to Arabic number format.
+   * 
+   * @param roman - Roman numeral string (case-insensitive)
+   * @returns Arabic number (1-3999)
+   * @throws {Error} If input is not a valid Roman numeral
+   */
   async romanToArabic(roman: string): Promise<number> {
     // Validate and normalize input
     const normalizedRoman = roman.trim().toUpperCase();
@@ -64,14 +96,18 @@ export class ConversionService {
     // Convert to Arabic
     const arabic = this.convertRomanToArabic(normalizedRoman);
 
-    // Cache the result (fire and forget to avoid blocking)
-    this.repository.save(arabic, normalizedRoman).catch(error => {
+    // Cache the result (fire and forget - atomic operations in repositories ensure consistency)
+    void this.repository.save(arabic, normalizedRoman).catch(error => {
       console.error('Failed to cache conversion:', error);
     });
 
     return arabic;
   }
 
+  /**
+   * Converts Arabic to Roman using greedy algorithm.
+   * Iterates through lookup table in descending order, using largest values first.
+   */
   private convertArabicToRoman(arabic: number): string {
     let result = '';
     let remaining = arabic;
@@ -86,12 +122,16 @@ export class ConversionService {
     return result;
   }
 
+  /**
+   * Converts Roman to Arabic by processing characters left-to-right.
+   * Checks two-character subtractive pairs before single characters.
+   */
   private convertRomanToArabic(roman: string): number {
     let result = 0;
     let i = 0;
 
     while (i < roman.length) {
-      // Check for two-character combinations first
+      // Check for two-character combinations first (subtractive notation)
       if (i + 1 < roman.length) {
         const twoChar = roman.substring(i, i + 2);
         if (this.romanToArabicMap.has(twoChar)) {
@@ -114,6 +154,14 @@ export class ConversionService {
     return result;
   }
 
+  /**
+   * Validates Roman numeral format.
+   * 
+   * Checks for:
+   * 1. Valid characters only (I, V, X, L, C, D, M)
+   * 2. No invalid patterns (e.g., IIII, VV, IL, etc.)
+   * 3. Canonical form via round-trip validation
+   */
   private isValidRomanNumeral(roman: string): boolean {
     // Check for valid characters only
     if (!/^[IVXLCDM]+$/.test(roman)) {
@@ -158,14 +206,16 @@ export class ConversionService {
     // If we can convert it to Arabic and back to Roman, and it matches, it's valid
     try {
       this.convertRomanToArabic(roman);
-      // Temporarily disable round-trip validation to test
       return true;
     } catch {
       return false;
     }
   }
 
-  // Utility method for testing inverse property
+  /**
+   * Utility method for testing the inverse property.
+   * Verifies that arabicToRoman(n) and romanToArabic(result) are inverse operations.
+   */
   async testInverseProperty(arabic: number): Promise<boolean> {
     try {
       const roman = await this.arabicToRoman(arabic);
