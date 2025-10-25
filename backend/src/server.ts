@@ -5,6 +5,13 @@ import { ConversionService } from './services/ConversionService';
 import { RepositoryFactory, DatabaseType } from './repositories/RepositoryFactory';
 import { IConverterRepository } from './repositories/IConverterRepository';
 import { ConversionResponse, DeleteResponse } from './types';
+import { 
+  romanRouteSchema, 
+  arabicRouteSchema, 
+  allRouteSchema, 
+  deleteRouteSchema, 
+  healthRouteSchema 
+} from './schemas';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -102,7 +109,7 @@ async function initializeServices() {
 // Register routes
 async function registerRoutes() {
   // Health check
-  fastify.get('/health', async () => {
+  fastify.get('/health', { schema: healthRouteSchema }, async () => {
     const isHealthy = await repository.isHealthy();
     return {
       status: isHealthy ? 'healthy' : 'unhealthy',
@@ -113,30 +120,14 @@ async function registerRoutes() {
 
   // Convert Arabic to Roman
   fastify.get<{
-    Params: { inputValue: string }
-  }>('/roman/:inputValue', async (request, reply) => {
+    Params: { inputValue: number }
+  }>('/roman/:inputValue', { schema: romanRouteSchema }, async (request, reply) => {
     const { inputValue } = request.params;
-    
-    // Validate format: must contain only digits
-    if (!/^\d+$/.test(inputValue)) {
-      return reply.status(400).send({
-        error: 'Input value must contain only digits'
-      });
-    }
-    
-    const arabic = parseInt(inputValue, 10);
-    
-    // Validate range
-    if (isNaN(arabic) || arabic < 1 || arabic > 3999) {
-      return reply.status(400).send({
-        error: 'Input value must be a number between 1 and 3999'
-      });
-    }
 
     try {
-      const roman = await conversionService.arabicToRoman(arabic);
+      const roman = await conversionService.arabicToRoman(inputValue);
       const response: ConversionResponse = {
-        inputValue: arabic,
+        inputValue,
         convertedValue: roman
       };
       return response;
@@ -151,23 +142,11 @@ async function registerRoutes() {
   // Convert Roman to Arabic
   fastify.get<{
     Params: { inputValue: string }
-  }>('/arabic/:inputValue', async (request, reply) => {
+  }>('/arabic/:inputValue', { schema: arabicRouteSchema }, async (request, reply) => {
     const { inputValue } = request.params;
     
-    // Validate format: must contain only Roman numeral characters
+    // Convert to uppercase for processing (schema validates pattern)
     const romanUpper = inputValue.toUpperCase();
-    if (!/^[IVXLCDM]+$/.test(romanUpper)) {
-      return reply.status(400).send({
-        error: 'Input value must contain only Roman numeral characters (I, V, X, L, C, D, M)'
-      });
-    }
-    
-    // Validate length (max possible is MMMCMXCIX = 3999)
-    if (romanUpper.length > 15) {
-      return reply.status(400).send({
-        error: 'Roman numeral is too long'
-      });
-    }
     
     try {
       const arabic = await conversionService.romanToArabic(romanUpper);
@@ -186,16 +165,10 @@ async function registerRoutes() {
 
   // Get all conversions (paginated)
   fastify.get<{
-    Querystring: { limit?: string; offset?: string }
-  }>('/all', async (request, reply) => {
-    const limit = Math.min(parseInt(request.query.limit || '100'), 1000);
-    const offset = parseInt(request.query.offset || '0');
-    
-    if (offset < 0) {
-      return reply.status(400).send({
-        error: 'Offset must be non-negative'
-      });
-    }
+    Querystring: { limit?: number; offset?: number }
+  }>('/all', { schema: allRouteSchema }, async (request, reply) => {
+    const limit = Math.min(request.query.limit || 100, 1000);
+    const offset = request.query.offset || 0;
 
     try {
       const result = await repository.getAll(limit, offset);
@@ -209,7 +182,7 @@ async function registerRoutes() {
   });
 
   // Delete all conversions
-  fastify.delete('/remove', async (_request, reply) => {
+  fastify.delete('/remove', { schema: deleteRouteSchema }, async (_request, reply) => {
     try {
       const deleted = await repository.deleteAll();
       const response: DeleteResponse = { deleted };

@@ -3,7 +3,7 @@ import { IConverterRepository } from '../../src/repositories/IConverterRepositor
 
 // Mock repository
 const mockRepository: jest.Mocked<IConverterRepository> = {
-  save: jest.fn(),
+  save: jest.fn().mockResolvedValue(undefined),
   findByArabic: jest.fn(),
   findByRoman: jest.fn(),
   getAll: jest.fn(),
