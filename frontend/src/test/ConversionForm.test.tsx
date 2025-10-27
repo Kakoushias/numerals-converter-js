@@ -1,19 +1,32 @@
 import React from 'react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConversionForm } from '../components/ConversionForm';
 import { api } from '../services/api';
 
 // Mock the API
-jest.mock('../services/api');
-const mockApi = api as jest.Mocked<typeof api>;
+vi.mock('../services/api', async () => {
+  const actual = await vi.importActual('../services/api') as any;
+  return {
+    ...actual,
+    api: {
+      convertArabicToRoman: vi.fn(),
+      convertRomanToArabic: vi.fn(),
+      getAllConversions: vi.fn(),
+      clearAllConversions: vi.fn(),
+    }
+  };
+});
+
+const mockApi = api as any;
 
 // Mock localStorage
 const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
+  getItem: vi.fn(() => '[]'),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
 };
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
@@ -21,23 +34,23 @@ Object.defineProperty(window, 'localStorage', {
 
 describe('ConversionForm', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     localStorageMock.getItem.mockReturnValue('[]');
   });
 
   it('renders both conversion forms', () => {
     render(<ConversionForm />);
     
-    expect(screen.getByText('Arabic to Roman')).toBeInTheDocument();
-    expect(screen.getByText('Roman to Arabic')).toBeInTheDocument();
+    expect(screen.getByText('Arabic Number')).toBeInTheDocument();
+    expect(screen.getByText('Roman Numeral')).toBeInTheDocument();
   });
 
   it('validates Arabic input correctly', async () => {
     const user = userEvent.setup();
     render(<ConversionForm />);
     
-    const arabicInput = screen.getByLabelText(/Arabic Number/);
-    const submitButton = screen.getByText('Convert to Roman');
+    const arabicInput = screen.getByLabelText(/Amount/);
+    const submitButton = screen.getByText('Convert →');
     
     // Test invalid input
     await user.type(arabicInput, '0');
@@ -67,8 +80,12 @@ describe('ConversionForm', () => {
     const user = userEvent.setup();
     render(<ConversionForm />);
     
-    const romanInput = screen.getByLabelText(/Roman Numeral/);
-    const submitButton = screen.getByText('Convert to Arabic');
+    // First switch to Roman input mode
+    const swapButton = screen.getByLabelText('Swap conversion direction');
+    await user.click(swapButton);
+    
+    const romanInput = screen.getByLabelText(/Amount/);
+    const submitButton = screen.getByText('Convert →');
     
     // Test invalid input
     await user.type(romanInput, 'IIII');
@@ -98,8 +115,8 @@ describe('ConversionForm', () => {
     const user = userEvent.setup();
     render(<ConversionForm />);
     
-    const arabicInput = screen.getByLabelText(/Arabic Number/);
-    const submitButton = screen.getByText('Convert to Roman');
+    const arabicInput = screen.getByLabelText(/Amount/);
+    const submitButton = screen.getByText('Convert →');
     
     await user.type(arabicInput, '2023');
     
@@ -124,8 +141,8 @@ describe('ConversionForm', () => {
     const user = userEvent.setup();
     render(<ConversionForm />);
     
-    const arabicInput = screen.getByLabelText(/Arabic Number/);
-    const submitButton = screen.getByText('Convert to Roman');
+    const arabicInput = screen.getByLabelText(/Amount/);
+    const submitButton = screen.getByText('Convert →');
     
     await user.type(arabicInput, '2023');
     
@@ -134,7 +151,7 @@ describe('ConversionForm', () => {
     await user.click(submitButton);
     
     await waitFor(() => {
-      expect(screen.getByText('API Error')).toBeInTheDocument();
+      expect(screen.getByText('Conversion failed')).toBeInTheDocument();
     });
   });
 });

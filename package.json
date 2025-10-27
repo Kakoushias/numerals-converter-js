@@ -1,0 +1,39 @@
+{
+  "name": "numerals-converter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Roman Numerals Converter - Full Stack Application",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces",
+    "test:backend": "npm run test --workspace=numerals-converter-backend",
+    "test:frontend": "npm run test --workspace=numerals-converter-frontend",
+    "test:coverage": "npm run test:coverage --workspaces",
+    "docker:prod": "docker-compose --profile prod up --build",
+    "docker:dev": "docker-compose --profile dev up",
+    "docker:test": "docker-compose --profile test up --build --abort-on-container-exit --exit-code-from test-runner",
+    "docker:test:watch": "docker-compose --profile test up --build",
+    "docker:down": "docker-compose down",
+    "docker:clean": "docker-compose down -v --remove-orphans",
+    "dev:backend": "npm run dev --workspace=numerals-converter-backend",
+    "dev:frontend": "npm run dev --workspace=numerals-converter-frontend",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build": "npm run build --workspaces",
+    "build:backend": "npm run build --workspace=numerals-converter-backend",
+    "build:frontend": "npm run build --workspace=numerals-converter-frontend",
+    "lint": "npm run lint --workspaces",
+    "lint:fix": "npm run lint:fix --workspaces",
+    "clean": "rm -rf backend/node_modules frontend/node_modules backend/dist frontend/dist node_modules",
+    "install:all": "npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

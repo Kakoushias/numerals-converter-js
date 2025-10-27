@@ -53,8 +53,10 @@ A production-grade Roman numerals converter with Node.js backend and React front
 For development with instant file changes and hot reload:
 
 ```bash
-# Start development environment with volume mounts
-docker-compose -f docker-compose.dev.yml up
+# Start development environment with profiles
+npm run docker:dev
+# OR
+docker-compose --profile dev up
 
 # Access the application
 # Frontend: http://localhost:5173 (with hot reload)
@@ -72,8 +74,10 @@ docker-compose -f docker-compose.dev.yml up
 For production testing with optimized builds:
 
 ```bash
-# Start production environment
-docker-compose up
+# Start production environment with profiles
+npm run docker:prod
+# OR
+docker-compose --profile prod up --build
 
 # Access the application
 # Frontend: http://localhost:5174 (optimized build)
@@ -86,27 +90,171 @@ docker-compose up
 - ✅ **Performance** - Nginx with gzip compression
 - ✅ **Security** - Non-root users and security headers
 
-### Using Docker Compose (Recommended)
+## 🐳 Docker Setup
+
+This project uses Docker Compose profiles for different environments.
+
+### Quick Start
+
+```bash
+# Development (hot reload)
+docker-compose --profile dev up
+
+# Production (optimized build)
+docker-compose --profile prod up --build
+
+# Run tests
+docker-compose --profile test up --build --abort-on-container-exit
+```
+
+### Using npm Scripts
+
+```bash
+# Development mode
+npm run docker:dev
+
+# Production mode  
+npm run docker:prod
+
+# Run tests
+npm run docker:test
+
+# Stop all containers
+npm run docker:down
+
+# Clean everything (including volumes)
+npm run docker:clean
+```
+
+### Profiles
+
+| Profile | Services | Purpose |
+|---------|----------|---------|
+| **dev** | backend-dev, frontend-dev, redis, postgres | Development with hot reload |
+| **prod** | backend-prod, frontend-prod, redis, postgres | Production build |
+| **test** | test-runner, redis-test, postgres-test | Automated testing |
+
+### For Reviewers
+
+```bash
+# Clone and test
+git clone <repo>
+cd numerals-converter-js
+
+# Run tests
+npm run docker:test
+
+# Or directly
+docker-compose --profile test up --build --abort-on-container-exit
+```
+
+### Development Workflow
+
+```bash
+# Start development environment
+npm run docker:dev
+
+# In another terminal, run tests
+npm run docker:test
+
+# Stop everything
+npm run docker:down
+```
+
+### Multiple Profiles
+
+Run dev and test together (if needed):
+```bash
+docker-compose --profile dev --profile test up
+```
+
+### Using Docker Compose (Legacy Commands)
 
 1. **Clone and start the application:**
    ```bash
    git clone <repository-url>
    cd numerals-converter-js
-   docker-compose up --build
+   docker-compose --profile prod up --build
    ```
 
 2. **Access the application:**
-   - Frontend: http://localhost:5173
+   - Frontend: http://localhost:5174 (production on port 80 mapped to 5174)
    - Backend API: http://localhost:3001
    - API Health: http://localhost:3001/health
+   - Dev Frontend: http://localhost:5173 (development mode)
 
 3. **Stop the application:**
    ```bash
    docker-compose down
    ```
 
-### Local Development
+### Local Development with npm Workspaces
 
+This project uses npm workspaces to manage both backend and frontend packages from the root.
+
+#### Quick Start
+```bash
+# Install all dependencies from root (one command!)
+npm install
+
+# Run both dev servers concurrently
+npm run dev
+
+# Run all tests (both packages)
+npm test
+```
+
+#### Installation
+```bash
+# Install all dependencies (backend + frontend)
+npm install
+```
+
+#### Development
+```bash
+# Run both dev servers concurrently
+npm run dev
+
+# Or run individually
+npm run dev:backend
+npm run dev:frontend
+```
+
+#### Testing
+```bash
+# Run all tests (both backend and frontend)
+npm test
+
+# Run backend tests only
+npm run test:backend
+
+# Run frontend tests only
+npm run test:frontend
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+#### Building
+```bash
+# Build both packages
+npm run build
+
+# Build specific package
+npm run build:backend
+npm run build:frontend
+```
+
+#### Linting
+```bash
+# Lint all packages
+npm run lint
+
+# Fix linting issues
+npm run lint:fix
+```
+
+#### Manual Setup (Without Workspaces)
 1. **Backend Setup:**
    ```bash
    cd backend
@@ -129,7 +277,42 @@ docker-compose up
 
 ## 🧪 Testing
 
-### Backend Tests
+### Running Tests in Docker (Recommended)
+
+This project uses Docker Compose profiles for all testing to ensure consistency across environments.
+
+**For Reviewers - No local setup required!**
+
+```bash
+# Run all tests (backend + frontend) in Docker
+npm run docker:test
+```
+
+That's it! Docker handles:
+- ✅ Installing dependencies
+- ✅ Setting up databases (Redis + PostgreSQL)
+- ✅ Running all tests
+- ✅ Cleaning up afterwards
+
+#### Docker Test Commands
+
+```bash
+# Run all tests once (exits after completion)
+npm run docker:test
+
+# Watch mode (keeps containers running)
+npm run docker:test:watch
+
+# Clean up test containers and volumes
+npm run docker:clean
+
+# View test logs
+docker-compose --profile test logs -f test-runner
+```
+
+### Running Tests Locally (Requires Local Setup)
+
+#### Backend Tests
 ```bash
 cd backend
 npm test                    # Run all tests
@@ -138,12 +321,20 @@ npm run test:coverage      # Coverage report
 npm run benchmark          # Performance benchmarks
 ```
 
-### Frontend Tests
+#### Frontend Tests
 ```bash
 cd frontend
 npm test                   # Run all tests
 npm run test:ui           # Interactive UI
 npm run test:coverage     # Coverage report
+```
+
+#### Using Workspace Commands
+```bash
+# From project root
+npm test                   # Run all tests (requires local databases)
+npm run test:backend      # Run backend tests only
+npm run test:frontend     # Run frontend tests only
 ```
 
 ## 📊 Performance Benchmarks
@@ -192,8 +383,10 @@ interface IConverterRepository {
 - **PostgresRepository**: Uses PostgreSQL with proper indexing and constraints
 
 ### Race Condition Handling
-- **Redis**: Uses pipeline operations and atomic commands
-- **PostgreSQL**: Uses `ON CONFLICT DO NOTHING` and transactions
+- **Redis**: Uses Lua scripting for atomic operations with bidirectional conflict checking
+- **PostgreSQL**: Uses explicit transactions with existence checks to handle unique constraints on both arabic and roman columns
+- **Service Layer**: Fire-and-forget caching strategy for performance, relying on repository atomicity
+- **Test Isolation**: Separate databases for testing (Redis database 1, PostgreSQL numerals_test)
 
 ## 🔧 Configuration
 
@@ -313,7 +506,10 @@ This implementation demonstrates:
 - **Production-ready code** with proper error handling and logging
 - **Performance optimization** with benchmarking and caching
 - **Scalable architecture** with repository pattern and dependency injection
-- **Comprehensive testing** including race condition handling
-- **DevOps best practices** with Docker and health checks
+- **Comprehensive testing** including race condition handling with atomic operations
+- **DevOps best practices** with Docker profiles, health checks, and multi-stage builds
+- **Modern tooling** with npm workspaces for monorepo management
 - **User experience** with validation, loading states, and accessibility
 - **Code quality** with TypeScript, linting, and proper documentation
+- **ACID compliance** with Lua scripts (Redis) and explicit transactions (PostgreSQL)
+- **Test isolation** with separate test databases and proper cleanup strategies

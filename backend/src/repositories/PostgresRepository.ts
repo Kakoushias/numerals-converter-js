@@ -51,11 +51,20 @@ export class PostgresRepository implements IConverterRepository {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
-      await client.query(
-        `INSERT INTO conversions (arabic, roman) VALUES ($1, $2) 
-         ON CONFLICT (arabic) DO NOTHING`,
+      
+      // First check if either already exists
+      const existing = await client.query(
+        'SELECT id FROM conversions WHERE arabic = $1 OR roman = $2',
         [arabic, roman]
       );
+      
+      if (existing.rows.length === 0) {
+        await client.query(
+          'INSERT INTO conversions (arabic, roman) VALUES ($1, $2)',
+          [arabic, roman]
+        );
+      }
+      
       await client.query('COMMIT');
     } catch (error) {
       await client.query('ROLLBACK');
