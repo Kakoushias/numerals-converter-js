@@ -1,6 +1,22 @@
 import { RedisRepository } from '../../src/repositories/RedisRepository';
 import { PostgresRepository } from '../../src/repositories/PostgresRepository';
 
+// Helper function to generate valid Roman numerals for testing
+function convertToRoman(arabic: number): string {
+  const values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+  const symbols = ['M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I'];
+  let result = '';
+  let remaining = arabic;
+  
+  for (let i = 0; i < values.length; i++) {
+    while (remaining >= values[i]) {
+      result += symbols[i];
+      remaining -= values[i];
+    }
+  }
+  return result;
+}
+
 describe('Race Condition Tests', () => {
   const testCases = [
     { arabic: 2023, roman: 'MMXXIII' },
@@ -12,7 +28,9 @@ describe('Race Condition Tests', () => {
     let redisRepo: RedisRepository;
 
     beforeAll(async () => {
-      redisRepo = new RedisRepository('redis://localhost:6379');
+      // Use Redis database 1 for tests (production uses database 0)
+      const testRedisUrl = process.env.TEST_REDIS_URL || 'redis://localhost:6379/1';
+      redisRepo = new RedisRepository(testRedisUrl);
     });
 
     afterAll(async () => {
@@ -20,6 +38,10 @@ describe('Race Condition Tests', () => {
     });
 
     beforeEach(async () => {
+      await redisRepo.deleteAll();
+    });
+
+    afterEach(async () => {
       await redisRepo.deleteAll();
     });
 
@@ -114,7 +136,7 @@ describe('Race Condition Tests', () => {
     it('should handle high concurrency stress test (500 parallel requests)', async () => {
       const conversions = Array.from({ length: 50 }, (_, i) => ({
         arabic: i + 1,
-        roman: `TEST${i + 1}`
+        roman: convertToRoman(i + 1)  // Use valid Roman numerals
       }));
 
       // Create 500 concurrent operations (10 per conversion)
@@ -145,6 +167,10 @@ describe('Race Condition Tests', () => {
     });
 
     beforeEach(async () => {
+      await postgresRepo.deleteAll();
+    });
+
+    afterEach(async () => {
       await postgresRepo.deleteAll();
     });
 
@@ -239,7 +265,7 @@ describe('Race Condition Tests', () => {
     it('should handle high concurrency stress test (500 parallel requests)', async () => {
       const conversions = Array.from({ length: 50 }, (_, i) => ({
         arabic: i + 1000,
-        roman: `TEST${i + 1000}`
+        roman: convertToRoman(i + 1000)  // Use valid Roman numerals
       }));
 
       // Create 500 concurrent operations (10 per conversion)
