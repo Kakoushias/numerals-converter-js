@@ -27,7 +27,7 @@ All performance testing features have been successfully implemented and tested.
    - `config.js` - Shared configuration, test data, and metrics
 
 4. **Docker Integration**
-   - New `benchmark` profile in docker-compose.yml
+   - New `benchmark` profile in docker compose.yml
    - `k6` service for load testing
    - Proper health checks and dependencies
    - Redis and Postgres shared across profiles
@@ -91,7 +91,7 @@ PERFORMANCE COMPARISON:
 - `PERFORMANCE_TESTING.md` (this file)
 
 **Modified Files:**
-- `docker-compose.yml` - Added benchmark and k6 services
+- `docker compose.yml` - Added benchmark and k6 services
 - `package.json` - Updated performance scripts
 - `backend/package.json` - Removed benchmark script
 - `README.md` - Updated documentation
@@ -151,11 +151,11 @@ npm run perf:all
 
 1. **Import Warnings**: The relative imports in `benchmark.ts` may show IDE warnings but work correctly in Docker.
 
-2. **K6 Profile**: K6 doesn't need a separate profile startup - it's run via `docker-compose run` after dev services are up.
+2. **K6 Profile**: K6 doesn't need a separate profile startup - it's run via `docker compose run` after dev services are up.
 
 3. **Health Checks**: The `--wait` flag ensures all services are healthy before running tests.
 
-4. **Cleanup**: All scripts include proper cleanup with `docker-compose down`.
+4. **Cleanup**: All scripts include proper cleanup with `docker compose down`.
 
 ## Status: ✅ Complete and Tested
 

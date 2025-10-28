@@ -56,7 +56,7 @@ For development with instant file changes and hot reload:
 # Start development environment with profiles
 npm run docker:dev
 # OR
-docker-compose --profile dev up
+docker compose --profile dev up
 
 # Access the application
 # Frontend: http://localhost:5173 (with hot reload)
@@ -77,7 +77,7 @@ For production testing with optimized builds:
 # Start production environment with profiles
 npm run docker:prod
 # OR
-docker-compose --profile prod up --build
+docker compose --profile prod up --build
 
 # Access the application
 # Frontend: http://localhost:5174 (optimized build)
@@ -98,13 +98,13 @@ This project uses Docker Compose profiles for different environments.
 
 ```bash
 # Development (hot reload)
-docker-compose --profile dev up
+docker compose --profile dev up
 
 # Production (optimized build)
-docker-compose --profile prod up --build
+docker compose --profile prod up --build
 
 # Run tests
-docker-compose --profile test up --build --abort-on-container-exit
+docker compose --profile test up --build --abort-on-container-exit
 ```
 
 ### Using npm Scripts
@@ -147,7 +147,7 @@ cd numerals-converter-js
 npm run docker:test
 
 # Or directly
-docker-compose --profile test up --build --abort-on-container-exit
+docker compose --profile test up --build --abort-on-container-exit
 ```
 
 ### Development Workflow
@@ -167,7 +167,7 @@ npm run docker:down
 
 Run dev and test together (if needed):
 ```bash
-docker-compose --profile dev --profile test up
+docker compose --profile dev --profile test up
 ```
 
 ### Using Docker Compose (Legacy Commands)
@@ -176,7 +176,7 @@ docker-compose --profile dev --profile test up
    ```bash
    git clone <repository-url>
    cd numerals-converter-js
-   docker-compose --profile prod up --build
+   docker compose --profile prod up --build
    ```
 
 2. **Access the application:**
@@ -187,7 +187,7 @@ docker-compose --profile dev --profile test up
 
 3. **Stop the application:**
    ```bash
-   docker-compose down
+   docker compose down
    ```
 
 ### Local Development with npm Workspaces
@@ -309,7 +309,7 @@ npm run docker:test:watch
 npm run docker:clean
 
 # View test logs
-docker-compose --profile test logs -f test-runner
+docker compose --profile test logs -f test-runner
 ```
 
 ### Running Tests Locally (Requires Local Setup)
@@ -421,18 +421,18 @@ For more control over k6 tests:
 
 ```bash
 # Start development environment
-docker-compose --profile dev up -d --wait
+docker compose --profile dev up -d --wait
 
 # In another terminal, run specific k6 tests
-docker-compose run --rm k6 run /scripts/smoke.test.js
-docker-compose run --rm k6 run /scripts/load.test.js
-docker-compose run --rm k6 run /scripts/stress.test.js
+docker compose run --rm k6 run /scripts/smoke.test.js
+docker compose run --rm k6 run /scripts/load.test.js
+docker compose run --rm k6 run /scripts/stress.test.js
 
 # With custom options
-docker-compose run --rm k6 run --vus 10 --duration 30s /scripts/smoke.test.js
+docker compose run --rm k6 run --vus 10 --duration 30s /scripts/smoke.test.js
 
 # Stop services
-docker-compose down
+docker compose down
 ```
 
 #### Performance Baselines

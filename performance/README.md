@@ -99,16 +99,16 @@ For more control:
 
 ```bash
 # Start dev environment
-docker-compose --profile dev up -d --wait
+docker compose --profile dev up -d --wait
 
 # Run specific test
-docker-compose run --rm k6 run /scripts/smoke.test.js
+docker compose run --rm k6 run /scripts/smoke.test.js
 
 # Run with custom options
-docker-compose run --rm k6 run --vus 10 --duration 30s /scripts/smoke.test.js
+docker compose run --rm k6 run --vus 10 --duration 30s /scripts/smoke.test.js
 
 # Stop services
-docker-compose down
+docker compose down
 ```
 
 ## Development
@@ -135,7 +135,7 @@ However, you'll need to update the connection strings in `benchmark.ts` to use `
 **For benchmarks**:
 1. Edit `benchmarks/benchmark.ts`
 2. Add new test scenarios
-3. Rebuild Docker image: `docker-compose build benchmark`
+3. Rebuild Docker image: `docker compose build benchmark`
 
 ## Troubleshooting
 
@@ -143,7 +143,7 @@ However, you'll need to update the connection strings in `benchmark.ts` to use `
 
 Make sure Docker services are healthy:
 ```bash
-docker-compose ps
+docker compose ps
 ```
 
 All services should show "healthy" status.
@@ -152,8 +152,8 @@ All services should show "healthy" status.
 
 Ensure backend is running and healthy:
 ```bash
-docker-compose --profile dev up -d --wait
-docker-compose ps backend-dev
+docker compose --profile dev up -d --wait
+docker compose ps backend-dev
 ```
 
 ### Import errors in IDE
