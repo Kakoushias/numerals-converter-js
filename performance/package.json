@@ -1,0 +1,24 @@
+{
+  "name": "numerals-converter-performance",
+  "version": "1.0.0",
+  "description": "Performance testing and benchmarking for Roman Numerals Converter",
+  "private": true,
+  "scripts": {
+    "benchmark": "tsx benchmarks/benchmark.ts",
+    "benchmark:watch": "tsx watch benchmarks/benchmark.ts",
+    "k6:smoke": "k6 run k6/smoke.test.js",
+    "k6:load": "k6 run k6/load.test.js",
+    "k6:stress": "k6 run k6/stress.test.js",
+    "k6:all": "npm run k6:smoke && npm run k6:load && npm run k6:stress"
+  },
+  "dependencies": {
+    "tsx": "^4.1.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.10",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

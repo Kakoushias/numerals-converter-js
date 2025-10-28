@@ -27,7 +27,12 @@
     "lint": "npm run lint --workspaces",
     "lint:fix": "npm run lint:fix --workspaces",
     "clean": "rm -rf backend/node_modules frontend/node_modules backend/dist frontend/dist node_modules",
-    "install:all": "npm install"
+    "install:all": "npm install",
+    "benchmark": "docker-compose --profile benchmark up --build --abort-on-container-exit --exit-code-from benchmark && docker-compose down",
+    "perf:smoke": "docker-compose --profile dev up --build -d --wait && docker-compose run --rm k6 run /scripts/smoke.test.js && docker-compose down",
+    "perf:load": "docker-compose --profile dev up --build -d --wait && docker-compose run --rm k6 run /scripts/load.test.js && docker-compose down",
+    "perf:stress": "docker-compose --profile dev up --build -d --wait && docker-compose run --rm k6 run /scripts/stress.test.js && docker-compose down",
+    "perf:all": "npm run perf:smoke && npm run perf:load && npm run perf:stress"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

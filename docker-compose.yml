@@ -1,5 +1,5 @@
 services:
-  # Redis - shared across prod and dev profiles
+  # Redis - shared across prod, dev, and benchmark profiles
   redis:
     image: redis:7-alpine
     container_name: numerals-redis
@@ -15,7 +15,7 @@ services:
       retries: 3
     networks:
       - numerals-network
-    profiles: ["prod", "dev"]
+    profiles: ["prod", "dev", "benchmark"]
 
   # Redis for testing (separate database)
   redis-test:
@@ -32,7 +32,7 @@ services:
       - test-network
     profiles: ["test"]
 
-  # PostgreSQL - shared across prod and dev profiles
+  # PostgreSQL - shared across prod, dev, and benchmark profiles
   postgres:
     image: postgres:15-alpine
     container_name: numerals-postgres
@@ -51,7 +51,7 @@ services:
       retries: 3
     networks:
       - numerals-network
-    profiles: ["prod", "dev"]
+    profiles: ["prod", "dev", "benchmark"]
 
   # PostgreSQL for testing (separate database)
   postgres-test:
@@ -210,6 +210,36 @@ services:
       - test-network
     command: npm test
     profiles: ["test"]
+
+  # Benchmark Service
+  benchmark:
+    build:
+      context: .
+      dockerfile: performance/Dockerfile
+    container_name: numerals-benchmark
+    environment:
+      REDIS_URL: redis://redis:6379
+      POSTGRES_URL: postgresql://postgres:password@postgres:5432/numerals
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - numerals-network
+    profiles: ["benchmark"]
+
+  # K6 Performance Testing
+  k6:
+    image: grafana/k6:latest
+    container_name: numerals-k6
+    environment:
+      API_URL: ${K6_API_URL:-http://backend-dev:3001}
+    volumes:
+      - ./performance/k6:/scripts
+    networks:
+      - numerals-network
+    profiles: ["perf"]
 
 volumes:
   redis_data:

@@ -133,6 +133,8 @@ npm run docker:clean
 | **dev** | backend-dev, frontend-dev, redis, postgres | Development with hot reload |
 | **prod** | backend-prod, frontend-prod, redis, postgres | Production build |
 | **test** | test-runner, redis-test, postgres-test | Automated testing |
+| **benchmark** | benchmark, redis, postgres | Internal performance benchmarks |
+| **perf** | k6, backend-dev, redis, postgres | API load testing with k6 |
 
 ### For Reviewers
 
@@ -337,14 +339,25 @@ npm run test:backend      # Run backend tests only
 npm run test:frontend     # Run frontend tests only
 ```
 
-## 📊 Performance Benchmarks
+## 📊 Performance Testing
 
-The application includes comprehensive benchmarks comparing Redis vs PostgreSQL performance:
+The application includes comprehensive performance testing with both internal benchmarks and k6 API load testing. All performance tests run in Docker for consistency and proper database access.
+
+### Internal Benchmarks
+
+Compare Redis vs PostgreSQL performance at the repository level using Docker:
 
 ```bash
-cd backend
+# Run benchmarks in Docker (recommended)
 npm run benchmark
 ```
+
+This command will:
+- Start Redis and PostgreSQL containers
+- Build and run the benchmark container
+- Execute performance tests comparing both databases
+- Display detailed results
+- Clean up containers automatically
 
 ### Sample Results (1000 iterations each):
 
@@ -361,6 +374,82 @@ npm run benchmark
 - Write Operations: Redis is 2.31x faster
 - Read Operations: Redis is 1.91x faster
 - Service Operations: Redis is 1.36x faster
+
+### K6 API Performance Tests
+
+Comprehensive API load testing using k6 with Docker integration:
+
+#### Quick Start
+
+```bash
+# Run smoke tests (basic verification)
+npm run perf:smoke
+
+# Run load tests (sustained load)
+npm run perf:load
+
+# Run stress tests (breaking points)
+npm run perf:stress
+
+# Run all performance tests
+npm run perf:all
+```
+
+#### Test Types
+
+**Smoke Tests (`smoke.test.js`):**
+- Minimal load: 1-5 VUs for 30s
+- Verifies all endpoints return 200
+- Checks response structure and validation
+- Thresholds: 95% success rate, p95 < 500ms
+
+**Load Tests (`load.test.js`):**
+- Gradual ramp-up: 0 → 50 → 100 VUs over 5 minutes
+- Sustained load at 100 VUs for 10 minutes
+- Ramp-down: 100 → 0 VUs over 2 minutes
+- Thresholds: 99% success rate, p95 < 300ms, p99 < 500ms
+
+**Stress Tests (`stress.test.js`):**
+- Aggressive ramp-up to find breaking points
+- Start at 50 VUs, increase by 50 every 2 minutes up to 500 VUs
+- Monitor for errors and degraded performance
+- Thresholds: Track error rate increase and response time degradation
+
+#### Manual K6 Testing
+
+For more control over k6 tests:
+
+```bash
+# Start development environment
+docker-compose --profile dev up -d --wait
+
+# In another terminal, run specific k6 tests
+docker-compose run --rm k6 run /scripts/smoke.test.js
+docker-compose run --rm k6 run /scripts/load.test.js
+docker-compose run --rm k6 run /scripts/stress.test.js
+
+# With custom options
+docker-compose run --rm k6 run --vus 10 --duration 30s /scripts/smoke.test.js
+
+# Stop services
+docker-compose down
+```
+
+#### Performance Baselines
+
+Expected performance characteristics:
+
+- **Smoke Tests**: All endpoints should respond within 500ms
+- **Load Tests**: System should handle 100 concurrent users with <300ms p95
+- **Stress Tests**: System should gracefully degrade, not crash
+
+#### Interpreting Results
+
+k6 provides detailed metrics including:
+- Request duration percentiles (p50, p95, p99)
+- Success/failure rates
+- Custom metrics for conversion operations
+- Real-time performance graphs
 
 ## 🏗️ Architecture
 
@@ -466,7 +555,7 @@ Both backend and frontend use multi-stage Docker builds for optimal image sizes:
 - **Unit Tests**: Conversion logic, repository methods
 - **Integration Tests**: API endpoints with test databases
 - **Race Condition Tests**: Concurrent operations validation
-- **Performance Tests**: Benchmarking and load testing
+- **Performance Tests**: Internal benchmarks (Redis vs PostgreSQL) and k6 API load testing
 
 ### Frontend Testing
 - **Component Tests**: React Testing Library
