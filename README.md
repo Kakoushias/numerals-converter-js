@@ -42,414 +42,53 @@ A production-grade Roman numerals converter with Node.js backend and React front
 | `DELETE` | `/remove` | Clear all conversions | `{ deleted: number }` |
 | `GET` | `/health` | Health check | `{ status: string, database: string, timestamp: string }` |
 
-## 🛠️ Quick Start
-
-### Prerequisites
-- Docker and Docker Compose
-- Node.js 18+ (for local development)
-
-### Development Mode (Hot Reload)
-
-For development with instant file changes and hot reload:
+## 👨‍💻 For Reviewers
 
 ```bash
-# Start development environment with profiles
-npm run docker:dev
-# OR
-docker compose --profile dev up
+# Clone the repository
+git clone https://github.com/Kakoushias/numerals-converter-js.git
+cd numerals-converter-js
 
-# Access the application
-# Frontend: http://localhost:5173 (with hot reload)
-# Backend: http://localhost:3001 (with auto-restart)
-```
-
-**Features:**
-- ✅ **Hot reload** - Changes appear instantly without rebuilding
-- ✅ **Volume mounts** - Local files are mapped to containers
-- ✅ **Auto-restart** - Backend restarts on file changes
-- ✅ **Fast development cycle** - No build step required
-
-### Production Mode (Optimized Build)
-
-For production testing with optimized builds:
-
-```bash
-# Start production environment with profiles
-npm run docker:prod
-# OR
-docker compose --profile prod up --build
-
-# Access the application
-# Frontend: http://localhost:5174 (optimized build)
-# Backend: http://localhost:3001 (production build)
-```
-
-**Features:**
-- ✅ **Optimized builds** - Minified and compressed assets
-- ✅ **Production images** - Multi-stage Docker builds
-- ✅ **Performance** - Nginx with gzip compression
-- ✅ **Security** - Non-root users and security headers
-
-## 🐳 Docker Setup
-
-This project uses Docker Compose profiles for different environments.
-
-### Quick Start
-
-```bash
-# Development (hot reload)
-docker compose --profile dev up
-
-# Production (optimized build)
-docker compose --profile prod up --build
-
-# Run tests
-docker compose --profile test up --build --abort-on-container-exit
-```
-
-### Using npm Scripts
-
-```bash
-# Development mode
-npm run docker:dev
-
-# Production mode  
-npm run docker:prod
-
-# Run tests
+# Run all tests (backend + frontend)
 npm run docker:test
 
-# Stop all containers
+# Run the application locally
+npm run docker:dev
+# Frontend: http://localhost:5173
+# Backend: http://localhost:3001
+# Health: http://localhost:3001/health
+
+# Stop containers
 npm run docker:down
 
 # Clean everything (including volumes)
 npm run docker:clean
 ```
 
-### Profiles
-
-| Profile | Services | Purpose |
-|---------|----------|---------|
-| **dev** | backend-dev, frontend-dev, redis, postgres | Development with hot reload |
-| **prod** | backend-prod, frontend-prod, redis, postgres | Production build |
-| **test** | test-runner, redis-test, postgres-test | Automated testing |
-| **benchmark** | benchmark, redis, postgres | Internal performance benchmarks |
-| **perf** | k6, backend-dev, redis, postgres | API load testing with k6 |
-
-### For Reviewers
-
-```bash
-# Clone and test
-git clone <repo>
-cd numerals-converter-js
-
-# Run tests
-npm run docker:test
-
-# Or directly
-docker compose --profile test up --build --abort-on-container-exit
-```
-
-### Development Workflow
-
-```bash
-# Start development environment
-npm run docker:dev
-
-# In another terminal, run tests
-npm run docker:test
-
-# Stop everything
-npm run docker:down
-```
-
-### Multiple Profiles
-
-Run dev and test together (if needed):
-```bash
-docker compose --profile dev --profile test up
-```
-
-### Using Docker Compose (Legacy Commands)
-
-1. **Clone and start the application:**
-   ```bash
-   git clone <repository-url>
-   cd numerals-converter-js
-   docker compose --profile prod up --build
-   ```
-
-2. **Access the application:**
-   - Frontend: http://localhost:5174 (production on port 80 mapped to 5174)
-   - Backend API: http://localhost:3001
-   - API Health: http://localhost:3001/health
-   - Dev Frontend: http://localhost:5173 (development mode)
-
-3. **Stop the application:**
-   ```bash
-   docker compose down
-   ```
-
-### Local Development with npm Workspaces
-
-This project uses npm workspaces to manage both backend and frontend packages from the root.
-
-#### Quick Start
-```bash
-# Install all dependencies from root (one command!)
-npm install
-
-# Run both dev servers concurrently
-npm run dev
-
-# Run all tests (both packages)
-npm test
-```
-
-#### Installation
-```bash
-# Install all dependencies (backend + frontend)
-npm install
-```
-
-#### Development
-```bash
-# Run both dev servers concurrently
-npm run dev
-
-# Or run individually
-npm run dev:backend
-npm run dev:frontend
-```
-
-#### Testing
-```bash
-# Run all tests (both backend and frontend)
-npm test
-
-# Run backend tests only
-npm run test:backend
-
-# Run frontend tests only
-npm run test:frontend
-
-# Run tests with coverage
-npm run test:coverage
-```
-
-#### Building
-```bash
-# Build both packages
-npm run build
-
-# Build specific package
-npm run build:backend
-npm run build:frontend
-```
-
-#### Linting
-```bash
-# Lint all packages
-npm run lint
-
-# Fix linting issues
-npm run lint:fix
-```
-
-#### Manual Setup (Without Workspaces)
-1. **Backend Setup:**
-   ```bash
-   cd backend
-   npm install
-   cp env.example .env
-   # Edit .env with your database settings
-   npm run dev
-   ```
-
-2. **Frontend Setup:**
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-
-3. **Database Setup:**
-   - **Redis**: `docker run -d -p 6379:6379 redis:alpine`
-   - **PostgreSQL**: `docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=password postgres:alpine`
-
 ## 🧪 Testing
 
-### Running Tests in Docker (Recommended)
-
-This project uses Docker Compose profiles for all testing to ensure consistency across environments.
-
-**For Reviewers - No local setup required!**
+Run all tests in Docker (no local setup required):
 
 ```bash
-# Run all tests (backend + frontend) in Docker
 npm run docker:test
 ```
 
-That's it! Docker handles:
-- ✅ Installing dependencies
-- ✅ Setting up databases (Redis + PostgreSQL)
-- ✅ Running all tests
-- ✅ Cleaning up afterwards
-
-#### Docker Test Commands
-
-```bash
-# Run all tests once (exits after completion)
-npm run docker:test
-
-# Watch mode (keeps containers running)
-npm run docker:test:watch
-
-# Clean up test containers and volumes
-npm run docker:clean
-
-# View test logs
-docker compose --profile test logs -f test-runner
-```
-
-### Running Tests Locally (Requires Local Setup)
-
-#### Backend Tests
-```bash
-cd backend
-npm test                    # Run all tests
-npm run test:watch         # Watch mode
-npm run test:coverage      # Coverage report
-npm run benchmark          # Performance benchmarks
-```
-
-#### Frontend Tests
-```bash
-cd frontend
-npm test                   # Run all tests
-npm run test:ui           # Interactive UI
-npm run test:coverage     # Coverage report
-```
-
-#### Using Workspace Commands
-```bash
-# From project root
-npm test                   # Run all tests (requires local databases)
-npm run test:backend      # Run backend tests only
-npm run test:frontend     # Run frontend tests only
-```
+Docker handles installing dependencies, setting up databases, running tests, and cleanup. For watch mode, use `npm run docker:test:watch`.
 
 ## 📊 Performance Testing
 
-The application includes comprehensive performance testing with both internal benchmarks and k6 API load testing. All performance tests run in Docker for consistency and proper database access.
-
-### Internal Benchmarks
-
-Compare Redis vs PostgreSQL performance at the repository level using Docker:
+Performance testing includes internal benchmarks and k6 API load testing. All tests run in Docker.
 
 ```bash
-# Run benchmarks in Docker (recommended)
+# Compare Redis vs PostgreSQL performance
 npm run benchmark
+
+# API load testing with k6
+npm run perf:smoke    # Smoke tests (basic verification)
+npm run perf:load     # Load tests (sustained load)
+npm run perf:stress   # Stress tests (breaking points)
+npm run perf:all      # Run all performance tests
 ```
-
-This command will:
-- Start Redis and PostgreSQL containers
-- Build and run the benchmark container
-- Execute performance tests comparing both databases
-- Display detailed results
-- Clean up containers automatically
-
-### Sample Results (1000 iterations each):
-
-| Operation | Database | Ops/sec | Avg Time |
-|-----------|----------|---------|----------|
-| Write Operations | Redis | 2,847 | 0.35ms |
-| Write Operations | PostgreSQL | 1,234 | 0.81ms |
-| Read Operations | Redis | 4,123 | 0.24ms |
-| Read Operations | PostgreSQL | 2,156 | 0.46ms |
-| Service Operations | Redis | 1,987 | 0.50ms |
-| Service Operations | PostgreSQL | 1,456 | 0.69ms |
-
-**Performance Comparison:**
-- Write Operations: Redis is 2.31x faster
-- Read Operations: Redis is 1.91x faster
-- Service Operations: Redis is 1.36x faster
-
-### K6 API Performance Tests
-
-Comprehensive API load testing using k6 with Docker integration:
-
-#### Quick Start
-
-```bash
-# Run smoke tests (basic verification)
-npm run perf:smoke
-
-# Run load tests (sustained load)
-npm run perf:load
-
-# Run stress tests (breaking points)
-npm run perf:stress
-
-# Run all performance tests
-npm run perf:all
-```
-
-#### Test Types
-
-**Smoke Tests (`smoke.test.js`):**
-- Minimal load: 1-5 VUs for 30s
-- Verifies all endpoints return 200
-- Checks response structure and validation
-- Thresholds: 95% success rate, p95 < 500ms
-
-**Load Tests (`load.test.js`):**
-- Gradual ramp-up: 0 → 50 → 100 VUs over 5 minutes
-- Sustained load at 100 VUs for 10 minutes
-- Ramp-down: 100 → 0 VUs over 2 minutes
-- Thresholds: 99% success rate, p95 < 300ms, p99 < 500ms
-
-**Stress Tests (`stress.test.js`):**
-- Aggressive ramp-up to find breaking points
-- Start at 50 VUs, increase by 50 every 2 minutes up to 500 VUs
-- Monitor for errors and degraded performance
-- Thresholds: Track error rate increase and response time degradation
-
-#### Manual K6 Testing
-
-For more control over k6 tests:
-
-```bash
-# Start development environment
-docker compose --profile dev up -d --wait
-
-# In another terminal, run specific k6 tests
-docker compose run --rm k6 run /scripts/smoke.test.js
-docker compose run --rm k6 run /scripts/load.test.js
-docker compose run --rm k6 run /scripts/stress.test.js
-
-# With custom options
-docker compose run --rm k6 run --vus 10 --duration 30s /scripts/smoke.test.js
-
-# Stop services
-docker compose down
-```
-
-#### Performance Baselines
-
-Expected performance characteristics:
-
-- **Smoke Tests**: All endpoints should respond within 500ms
-- **Load Tests**: System should handle 100 concurrent users with <300ms p95
-- **Stress Tests**: System should gracefully degrade, not crash
-
-#### Interpreting Results
-
-k6 provides detailed metrics including:
-- Request duration percentiles (p50, p95, p99)
-- Success/failure rates
-- Custom metrics for conversion operations
-- Real-time performance graphs
 
 ## 🏗️ Architecture
 
@@ -493,7 +132,10 @@ REDIS_URL=redis://localhost:6379
 POSTGRES_URL=postgresql://postgres:password@localhost:5432/numerals
 
 # Rate Limiting
-RATE_LIMIT_MAX=100
+# Production default: 5000 req/min (~83 req/sec) - aligns with tested capacity of 132 req/sec
+# Development default: 50000 req/min for load testing with k6
+# Adjust based on your needs - system tested at 132 req/sec sustained with 100 concurrent users
+RATE_LIMIT_MAX=5000
 RATE_LIMIT_TIME_WINDOW=60000
 
 # CORS
@@ -508,97 +150,54 @@ LOG_LEVEL=info
 VITE_API_URL=http://localhost:3001
 ```
 
-## 🐳 Docker Configuration
+## 🚀 Production Features
 
-### Multi-stage Builds
-Both backend and frontend use multi-stage Docker builds for optimal image sizes:
-
-- **Backend**: Node.js Alpine → Production with dumb-init
-- **Frontend**: Node.js Alpine → Nginx Alpine with built assets
-
-### Security Features
-- Non-root users in containers
-- Security headers in nginx
-- Health checks for all services
-- Proper signal handling
+The application uses Docker multi-stage builds for optimized production images. It includes health checks, graceful shutdown handling, and security features such as non-root container users, security headers, and CORS configuration. The backend supports both Redis and PostgreSQL databases with the repository pattern, allowing flexible deployment options.
 
 ## 📈 Monitoring
 
-### Health Checks
-- **Backend**: `/health` endpoint with database connectivity
-- **Frontend**: `/health` endpoint for nginx
-- **Databases**: Built-in health checks for Redis and PostgreSQL
-
-### Logging
-- **Backend**: Structured JSON logging with Pino
-- **Frontend**: Nginx access and error logs
-- **Development**: Pretty-printed logs for better readability
-
-## 🚀 Deployment
-
-### Production Deployment
-1. Set production environment variables
-2. Build and push Docker images
-3. Deploy with Docker Compose or Kubernetes
-4. Configure reverse proxy (nginx/traefik)
-5. Set up monitoring and logging
-
-### Scaling Considerations
-- **Redis**: Can be clustered for high availability
-- **PostgreSQL**: Can use read replicas for read scaling
-- **Backend**: Stateless, can be horizontally scaled
-- **Frontend**: CDN-friendly static assets
+Health checks are available at `/health` endpoints for both backend and frontend. Backend logging uses structured JSON with Pino, while development mode provides pretty-printed logs for readability.
 
 ## 🧪 Testing Strategy
 
-### Backend Testing
-- **Unit Tests**: Conversion logic, repository methods
-- **Integration Tests**: API endpoints with test databases
-- **Race Condition Tests**: Concurrent operations validation
-- **Performance Tests**: Internal benchmarks (Redis vs PostgreSQL) and k6 API load testing
+- **Backend**: Unit tests for conversion logic and repository methods, integration tests for API endpoints, race condition tests for concurrent operations, and performance benchmarks
+- **Frontend**: Component tests with React Testing Library, integration tests for user interactions, and accessibility tests
 
-### Frontend Testing
-- **Component Tests**: React Testing Library
-- **Integration Tests**: User interactions and API calls
-- **Accessibility Tests**: Screen reader and keyboard navigation
-- **Visual Tests**: UI component rendering
+## 💡 Implementation Notes
 
-## 📝 Conversion Algorithm
+This section documents intentional design decisions, trade-offs, and known limitations.
 
-### Roman Numeral Rules
-- Standard subtractive notation (I, IV, V, IX, X, XL, L, XC, C, CD, D, CM, M)
-- Range: 1-3999 (classic Roman numeral limit)
-- Comprehensive validation for invalid patterns
+### Docker Cleanup Trade-off
 
-### Edge Cases Handled
-- 1, 4, 9, 40, 90, 400, 900, 3999
-- Invalid combinations (IL, IC, ID, IM, XD, XM, etc.)
-- Consecutive character limits (max 3 for I, X, C, M)
-- Inverse property validation (A→R→A = A)
+Docker commands use semicolons (`;`) instead of `&&` to ensure cleanup even when interrupted with Ctrl+C, preventing port conflicts between profiles. The trade-off is that exit codes are lost (always returns 0 from cleanup), so CI/CD pipelines should parse test output:
 
-## 🤝 Contributing
+```yaml
+- name: Run tests
+  run: npm run docker:test
+- name: Check test results
+  run: docker compose logs test-runner | grep -q "Tests:.*failed" && exit 1 || exit 0
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+### Fire-and-Forget Caching Strategy
 
-## 📄 License
+The `ConversionService` uses a fire-and-forget approach for caching, providing immediate responses without waiting for database writes. This is acceptable since cache misses only result in cheap recomputation, and we rely on repository-level atomicity (Lua scripts for Redis, transactions for PostgreSQL) to handle race conditions.
 
-This project is licensed under the MIT License.
+Consider message queues (RabbitMQ, Redis Streams, AWS SQS) when: you need guaranteed delivery and retry logic, high write volume requires buffering, caching triggers complex workflows (analytics, notifications), you need guaranteed audit trails, or multiple services must react to conversion events.
 
-## 🎯 Interview Notes
+### API Design Preferences
 
-This implementation demonstrates:
-- **Production-ready code** with proper error handling and logging
-- **Performance optimization** with benchmarking and caching
-- **Scalable architecture** with repository pattern and dependency injection
-- **Comprehensive testing** including race condition handling with atomic operations
-- **DevOps best practices** with Docker profiles, health checks, and multi-stage builds
-- **Modern tooling** with npm workspaces for monorepo management
-- **User experience** with validation, loading states, and accessibility
-- **Code quality** with TypeScript, linting, and proper documentation
-- **ACID compliance** with Lua scripts (Redis) and explicit transactions (PostgreSQL)
-- **Test isolation** with separate test databases and proper cleanup strategies
+**Current:** `/roman/:inputValue`, `/arabic/:inputValue`, `/all?limit=100&offset=0`, `DELETE /remove`
+
+**Preferred:** A single `/convert?fromType=arabic&toType=roman&input=42` endpoint with `/history` for paginated results. This reduces API surface area, follows REST conventions (resources are nouns), and makes adding new conversion types easier. The current design was kept simple and explicit for clarity in the interview context.
+
+### ORM Decision
+
+Direct SQL queries are used instead of an ORM because this is a single-table cache with two columns. Raw queries provide better performance, direct access to database-specific features (Lua scripts for Redis, PostgreSQL's ON CONFLICT), and explicit SQL that's easier to optimize and debug.
+
+Consider an ORM (TypeORM, Prisma, Sequelize) when: you have complex relations with multiple tables and joins, need automated schema migrations, want compile-time type checking for queries, need standardized patterns for a large team, or are doing rapid prototyping. An ORM would be justified if this project had user accounts, multiple conversion types, audit logs with relationships, or complex reporting.
+
+### Algorithm Simplicity
+
+A simple greedy algorithm with hardcoded value-to-numeral mappings is optimal for Roman numerals: there are only 13 fixed mappings, it provides O(1) space and effectively constant time for the 1-3999 range, and the code is immediately readable and verifiable without abstraction overhead.
+
+If the project needed to support multiple numeral systems, architectural options include: Strategy Pattern with Registry, Plugin Architecture, Rule-Based Engine, or Configuration-Driven approaches. Only add abstraction when you have 3+ conversion types - until then, YAGNI (You Aren't Gonna Need It).

@@ -25,6 +25,11 @@ export default function () {
   const arabicResponse = http.get(`${BASE_URL}/roman/${testData.arabic}`);
   const arabicValid = validateConversionResponse(arabicResponse, 'roman');
   
+  // Log errors for diagnosis
+  if (arabicResponse.status !== 200) {
+    console.error(`[Arabic->Roman] Status: ${arabicResponse.status}, URL: ${BASE_URL}/roman/${testData.arabic}, Body: ${arabicResponse.body.substring(0, 200)}`);
+  }
+  
   check(arabicResponse, {
     'Arabic to Roman - Status 200': (r) => r.status === 200,
     'Arabic to Roman - Valid Response': () => arabicValid,
@@ -49,6 +54,11 @@ export default function () {
   const romanResponse = http.get(`${BASE_URL}/arabic/${testData.roman}`);
   const romanValid = validateConversionResponse(romanResponse, 'arabic');
   
+  // Log errors for diagnosis
+  if (romanResponse.status !== 200) {
+    console.error(`[Roman->Arabic] Status: ${romanResponse.status}, URL: ${BASE_URL}/arabic/${testData.roman}, Body: ${romanResponse.body.substring(0, 200)}`);
+  }
+  
   check(romanResponse, {
     'Roman to Arabic - Status 200': (r) => r.status === 200,
     'Roman to Arabic - Valid Response': () => romanValid,
@@ -72,6 +82,12 @@ export default function () {
   // Occasionally test the /all endpoint (10% of requests)
   if (Math.random() < 0.1) {
     const allResponse = http.get(`${BASE_URL}/all?limit=10`);
+    
+    // Log errors for diagnosis
+    if (allResponse.status !== 200) {
+      console.error(`[Get All] Status: ${allResponse.status}, URL: ${BASE_URL}/all?limit=10, Body: ${allResponse.body.substring(0, 200)}`);
+    }
+    
     check(allResponse, {
       'Get All - Status 200': (r) => r.status === 200,
       'Get All - Valid Response': (r) => {
