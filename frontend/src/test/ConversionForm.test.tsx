@@ -54,6 +54,12 @@ describe('ConversionForm', () => {
     
     // Test invalid input
     await user.type(arabicInput, '0');
+    
+    // Wait for state to settle after typing
+    await waitFor(() => {
+      expect(arabicInput).toHaveValue('0');
+    });
+    
     await user.click(submitButton);
     
     await waitFor(() => {
@@ -62,7 +68,18 @@ describe('ConversionForm', () => {
     
     // Test valid input
     await user.clear(arabicInput);
+    
+    // Wait for clear to complete
+    await waitFor(() => {
+      expect(arabicInput).toHaveValue('');
+    });
+    
     await user.type(arabicInput, '2023');
+    
+    // Wait for typing to complete
+    await waitFor(() => {
+      expect(arabicInput).toHaveValue('2023');
+    });
     
     mockApi.convertArabicToRoman.mockResolvedValue({
       inputValue: 2023,
@@ -84,11 +101,23 @@ describe('ConversionForm', () => {
     const swapButton = screen.getByLabelText('Swap conversion direction');
     await user.click(swapButton);
     
+    // Wait for swap to complete
+    await waitFor(() => {
+      const romanInput = screen.getByLabelText(/Amount/);
+      expect(romanInput).toHaveAttribute('placeholder', expect.stringContaining('Roman'));
+    });
+    
     const romanInput = screen.getByLabelText(/Amount/);
     const submitButton = screen.getByText('Convert →');
     
     // Test invalid input
     await user.type(romanInput, 'IIII');
+    
+    // Wait for typing to complete
+    await waitFor(() => {
+      expect(romanInput).toHaveValue('IIII');
+    });
+    
     await user.click(submitButton);
     
     await waitFor(() => {
@@ -97,7 +126,18 @@ describe('ConversionForm', () => {
     
     // Test valid input
     await user.clear(romanInput);
+    
+    // Wait for clear to complete
+    await waitFor(() => {
+      expect(romanInput).toHaveValue('');
+    });
+    
     await user.type(romanInput, 'MMXXIII');
+    
+    // Wait for typing to complete
+    await waitFor(() => {
+      expect(romanInput).toHaveValue('MMXXIII');
+    });
     
     mockApi.convertRomanToArabic.mockResolvedValue({
       inputValue: 'MMXXIII',
@@ -119,6 +159,11 @@ describe('ConversionForm', () => {
     const submitButton = screen.getByText('Convert →');
     
     await user.type(arabicInput, '2023');
+    
+    // Wait for typing to complete
+    await waitFor(() => {
+      expect(arabicInput).toHaveValue('2023');
+    });
     
     // Mock a delayed response
     mockApi.convertArabicToRoman.mockImplementation(
@@ -145,6 +190,11 @@ describe('ConversionForm', () => {
     const submitButton = screen.getByText('Convert →');
     
     await user.type(arabicInput, '2023');
+    
+    // Wait for typing to complete
+    await waitFor(() => {
+      expect(arabicInput).toHaveValue('2023');
+    });
     
     mockApi.convertArabicToRoman.mockRejectedValue(new Error('API Error'));
     

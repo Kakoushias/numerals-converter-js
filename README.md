@@ -19,11 +19,10 @@ A production-grade Roman numerals converter with Node.js backend and React front
 - **React + TypeScript**: Type-safe development
 - **Tailwind CSS**: Utility-first styling
 - **HeadlessUI**: Accessible components
-- **LocalStorage History**: Client-side conversion history
 - **Input Validation**: Real-time validation with helpful error messages
 - **Loading States**: User feedback during API calls
 - **Responsive Design**: Mobile-friendly interface
-- **Accessibility**: ARIA labels, keyboard navigation
+- **Accessibility**: ARIA labels, keyboard navigation, focus management
 
 ### DevOps
 - **Multi-stage Docker Builds**: Optimized production images
@@ -166,17 +165,6 @@ Health checks are available at `/health` endpoints for both backend and frontend
 ## 💡 Implementation Notes
 
 This section documents intentional design decisions, trade-offs, and known limitations.
-
-### Docker Cleanup Trade-off
-
-Docker commands use semicolons (`;`) instead of `&&` to ensure cleanup even when interrupted with Ctrl+C, preventing port conflicts between profiles. The trade-off is that exit codes are lost (always returns 0 from cleanup), so CI/CD pipelines should parse test output:
-
-```yaml
-- name: Run tests
-  run: npm run docker:test
-- name: Check test results
-  run: docker compose logs test-runner | grep -q "Tests:.*failed" && exit 1 || exit 0
-```
 
 ### Fire-and-Forget Caching Strategy
 

@@ -14,7 +14,7 @@
     "test:coverage": "npm run test:coverage --workspaces",
     "docker:prod": "docker compose --profile prod up --build",
     "docker:dev": "docker compose --profile dev up",
-    "docker:test": "docker compose --profile test up --build --abort-on-container-exit --exit-code-from test-runner; docker compose --profile test down --remove-orphans",
+    "docker:test": "docker compose --profile test up --build --abort-on-container-exit --exit-code-from test-runner",
     "docker:test:watch": "docker compose --profile test up --build",
     "docker:down": "docker compose down",
     "docker:clean": "docker compose down -v --remove-orphans",
@@ -28,10 +28,10 @@
     "lint:fix": "npm run lint:fix --workspaces",
     "clean": "rm -rf backend/node_modules frontend/node_modules backend/dist frontend/dist node_modules",
     "install:all": "npm install",
-    "benchmark": "docker compose --profile benchmark up --build --abort-on-container-exit --exit-code-from benchmark; docker compose down",
-    "perf:smoke": "docker compose --profile dev up --build -d --wait && docker compose run --rm k6 run /scripts/smoke.test.js; docker compose down",
-    "perf:load": "docker compose --profile dev up --build -d --wait && docker compose run --rm k6 run /scripts/load.test.js; docker compose down",
-    "perf:stress": "docker compose --profile dev up --build -d --wait && docker compose run --rm k6 run /scripts/stress.test.js; docker compose down",
+    "benchmark": "docker compose --profile benchmark up --build --abort-on-container-exit --exit-code-from benchmark && docker compose down",
+    "perf:smoke": "docker compose --profile dev up --build -d --wait && docker compose run --rm k6 run /scripts/smoke.test.js && docker compose down",
+    "perf:load": "docker compose --profile dev up --build -d --wait && docker compose run --rm k6 run /scripts/load.test.js && docker compose down",
+    "perf:stress": "docker compose --profile dev up --build -d --wait && docker compose run --rm k6 run /scripts/stress.test.js && docker compose down",
     "perf:all": "npm run perf:smoke && npm run perf:load && npm run perf:stress"
   },
   "devDependencies": {

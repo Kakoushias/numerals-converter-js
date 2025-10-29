@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { api, ApiError } from '../services/api';
 import { Conversion, PaginatedResult } from '../types';
 
@@ -69,6 +70,10 @@ export function ServerConversions({ onConversionsLoaded }: ServerConversionsProp
 
   const handleCloseModal = () => {
     setShowDeleteConfirm(false);
+    // Don't reset state here - let it happen after transition
+  };
+
+  const handleAfterLeave = () => {
     setDeleteResult(null);
     setError(null);
   };
@@ -212,69 +217,100 @@ export function ServerConversions({ onConversionsLoaded }: ServerConversionsProp
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3 text-center">
-              {deleteResult === null ? (
-                // Confirmation State
-                <>
-                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                    <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mt-4">Delete All Conversions</h3>
-                  <div className="mt-2 px-7 py-3">
-                    <p className="text-sm text-gray-500">
-                      Are you sure you want to delete all conversions from the server? This action cannot be undone.
-                    </p>
-                  </div>
-                  <div className="items-center px-4 py-3">
-                    <button
-                      onClick={deleteAllConversions}
-                      disabled={deleting}
-                      className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-50"
-                    >
-                      {deleting ? 'Deleting...' : 'Yes, Delete All'}
-                    </button>
-                    <button
-                      onClick={handleCloseModal}
-                      disabled={deleting}
-                      className="mt-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-50"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </>
-              ) : (
-                // Success State
-                <>
-                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-                    <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mt-4">Successfully Deleted</h3>
-                  <div className="mt-2 px-7 py-3">
-                    <p className="text-sm text-gray-700">
-                      {deleteResult} {deleteResult === 1 ? 'conversion' : 'conversions'} deleted from server.
-                    </p>
-                  </div>
-                  <div className="items-center px-4 py-3">
-                    <button
-                      onClick={handleCloseModal}
-                      className="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                    >
-                      Close
-                    </button>
-                  </div>
-                </>
-              )}
+      <Transition appear show={showDeleteConfirm} as={Fragment} afterLeave={handleAfterLeave}>
+        <Dialog as="div" className="relative z-50" onClose={handleCloseModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-center align-middle shadow-xl transition-all">
+                  {deleteResult === null ? (
+                    // Confirmation State
+                    <>
+                      <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                        <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                      </div>
+                      <Dialog.Title as="h3" className="text-lg font-medium text-gray-900 mt-4">
+                        Delete All Conversions
+                      </Dialog.Title>
+                      <Dialog.Description className="mt-2 px-7 py-3">
+                        <p className="text-sm text-gray-500">
+                          Are you sure you want to delete all conversions from the server? This action cannot be undone.
+                        </p>
+                      </Dialog.Description>
+                      <div className="items-center px-4 py-3">
+                        <button
+                          onClick={deleteAllConversions}
+                          disabled={deleting}
+                          className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-50"
+                          aria-label="Confirm deletion of all conversions"
+                        >
+                          {deleting ? 'Deleting...' : 'Yes, Delete All'}
+                        </button>
+                        <button
+                          onClick={handleCloseModal}
+                          disabled={deleting}
+                          className="mt-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-50"
+                          aria-label="Cancel deletion"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    // Success State
+                    <>
+                      <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                        <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <Dialog.Title as="h3" className="text-lg font-medium text-gray-900 mt-4">
+                        Successfully Deleted
+                      </Dialog.Title>
+                      <Dialog.Description className="mt-2 px-7 py-3">
+                        <p className="text-sm text-gray-700">
+                          {deleteResult} {deleteResult === 1 ? 'conversion' : 'conversions'} deleted from server.
+                        </p>
+                      </Dialog.Description>
+                      <div className="items-center px-4 py-3">
+                        <button
+                          onClick={handleCloseModal}
+                          className="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          aria-label="Close dialog"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </Dialog.Panel>
+              </Transition.Child>
             </div>
           </div>
-        </div>
-      )}
+        </Dialog>
+      </Transition>
     </div>
   );
 }

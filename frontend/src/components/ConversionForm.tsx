@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useConversion } from '../hooks/useConversion';
-import { useLocalStorage } from '../hooks/useLocalStorage';
 import { validateArabicNumber, validateRomanNumeral } from '../utils/validation';
-import { Conversion } from '../types';
 import { clsx } from 'clsx';
 
 type ConversionDirection = 'arabic-to-roman' | 'roman-to-arabic';
@@ -15,7 +13,6 @@ export function ConversionForm() {
   const [hasConverted, setHasConverted] = useState(false);
 
   const { loading, error, convertArabicToRoman, convertRomanToArabic, clearError } = useConversion();
-  const [, setHistory] = useLocalStorage<Conversion[]>('conversion-history', []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +32,6 @@ export function ConversionForm() {
       if (roman) {
         setConvertedValue(roman);
         setHasConverted(true);
-        addToHistory({ arabic, roman });
       }
     } else {
       const validation = validateRomanNumeral(inputValue);
@@ -49,23 +45,8 @@ export function ConversionForm() {
       if (arabic) {
         setConvertedValue(arabic.toString());
         setHasConverted(true);
-        addToHistory({ arabic, roman: inputValue.toUpperCase() });
       }
     }
-  };
-
-  const addToHistory = (conversion: Conversion) => {
-    setHistory(prev => {
-      // Avoid duplicates
-      const exists = prev.some(item =>
-        item.arabic === conversion.arabic && item.roman === conversion.roman
-      );
-
-      if (exists) return prev;
-
-      // Add to beginning and limit to 50 items
-      return [conversion, ...prev].slice(0, 50);
-    });
   };
 
   const handleSwap = () => {
@@ -134,7 +115,7 @@ export function ConversionForm() {
               <div className="flex items-center justify-between h-full">
                 <div className="flex items-center w-full">
                   {direction === 'arabic-to-roman' && (
-                    <span className="text-gray-500 mr-2">#</span>
+                    <span className="text-gray-500 mr-2" aria-hidden="true">#</span>
                   )}
                   <input
                     id="amount-input"
@@ -148,22 +129,33 @@ export function ConversionForm() {
                     }
                     className="flex-1 border-none bg-transparent p-0 text-2xl font-semibold text-gray-900 focus:outline-none focus:shadow-none"
                     disabled={loading}
+                    aria-label={
+                      direction === 'arabic-to-roman'
+                        ? 'Enter Arabic number to convert to Roman numeral'
+                        : 'Enter Roman numeral to convert to Arabic number'
+                    }
+                    aria-invalid={!!inputError}
+                    aria-describedby={inputError ? 'input-error' : undefined}
                   />
                 </div>
               </div>
             </div>
             {inputError && (
-              <p className="mt-1 text-sm text-red-600">{inputError}</p>
+              <p id="input-error" className="mt-1 text-sm text-red-600" role="alert">{inputError}</p>
             )}
           </div>
 
           {/* From/To Selectors - Right side on desktop */}
           <div className="relative grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] gap-2">
             {/* From Card */}
-            <div className={clsx(
-              "relative flex h-24 w-full flex-col justify-center rounded-lg border border-gray-300 bg-white px-4 hover:bg-gray-50 transition-colors",
-              direction === 'arabic-to-roman' && "border-blue-500 bg-blue-50"
-            )}>
+            <div 
+              className={clsx(
+                "relative flex h-24 w-full flex-col justify-center rounded-lg border border-gray-300 bg-white px-4 hover:bg-gray-50 transition-colors",
+                direction === 'arabic-to-roman' && "border-blue-500 bg-blue-50"
+              )}
+              role="status"
+              aria-label={`Converting from ${direction === 'arabic-to-roman' ? 'Arabic Number' : 'Roman Numeral'}`}
+            >
               <label className="text-xs text-gray-500 mb-1">From</label>
               <div>
                 <span className="text-lg font-semibold text-gray-900">Arabic Number</span>
@@ -197,10 +189,14 @@ export function ConversionForm() {
             </div>
 
             {/* To Card */}
-            <div className={clsx(
-              "relative flex h-24 w-full flex-col justify-center rounded-lg border border-gray-300 bg-white px-4 hover:bg-gray-50 transition-colors",
-              direction === 'roman-to-arabic' && "border-blue-500 bg-blue-50"
-            )}>
+            <div 
+              className={clsx(
+                "relative flex h-24 w-full flex-col justify-center rounded-lg border border-gray-300 bg-white px-4 hover:bg-gray-50 transition-colors",
+                direction === 'roman-to-arabic' && "border-blue-500 bg-blue-50"
+              )}
+              role="status"
+              aria-label={`Converting to ${direction === 'arabic-to-roman' ? 'Roman Numeral' : 'Arabic Number'}`}
+            >
               <label className="text-xs text-gray-500 mb-1">To</label>
               <div>
                 <span className="text-lg font-semibold text-gray-900">Roman Numeral</span>
@@ -223,7 +219,7 @@ export function ConversionForm() {
 
         {/* Result Display */}
         {hasConverted && convertedValue && (
-          <div className="bg-gray-50 rounded-lg p-6">
+          <div className="bg-gray-50 rounded-lg p-6" role="region" aria-live="polite" aria-label="Conversion result">
             <p className="text-base text-gray-700 mb-2">
               {inputValue} {direction === 'arabic-to-roman' ? 'Arabic Number' : 'Roman Numeral'} =
             </p>
@@ -238,7 +234,7 @@ export function ConversionForm() {
 
         {/* Global Error */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4" role="alert" aria-live="assertive">
             <p className="text-red-800">{error}</p>
           </div>
         )}

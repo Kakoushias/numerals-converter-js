@@ -50,25 +50,21 @@ export class PostgresRepository implements IConverterRepository {
   async save(arabic: number, roman: string): Promise<void> {
     const client = await this.pool.connect();
     try {
-      await client.query('BEGIN');
-      
-      // First check if either already exists
-      const existing = await client.query(
-        'SELECT id FROM conversions WHERE arabic = $1 OR roman = $2',
-        [arabic, roman]
-      );
-      
-      if (existing.rows.length === 0) {
+      // Use ON CONFLICT to handle race conditions atomically
+      // Since we have unique constraints on both arabic and roman, we need to catch
+      // conflicts on either column. PostgreSQL doesn't support multiple ON CONFLICT
+      // clauses, so we catch the error and ignore it if it's a duplicate key violation.
+      try {
         await client.query(
-          'INSERT INTO conversions (arabic, roman) VALUES ($1, $2)',
+          'INSERT INTO conversions (arabic, roman) VALUES ($1, $2) ON CONFLICT (arabic) DO NOTHING',
           [arabic, roman]
         );
+      } catch (error: any) {
+        // If the error is a duplicate key violation on roman column, ignore it (first-write-wins)
+        if (error.code !== '23505') {
+          throw error;
+        }
       }
-      
-      await client.query('COMMIT');
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
     } finally {
       client.release();
     }
