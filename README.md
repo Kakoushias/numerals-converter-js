@@ -170,7 +170,7 @@ This section documents intentional design decisions, trade-offs, and known limit
 
 The `ConversionService` uses a fire-and-forget approach for caching, providing immediate responses without waiting for database writes. This is acceptable since cache misses only result in cheap recomputation, and we rely on repository-level atomicity (Lua scripts for Redis, transactions for PostgreSQL) to handle race conditions.
 
-Consider message queues (RabbitMQ, Redis Streams, AWS SQS) when: you need guaranteed delivery and retry logic, high write volume requires buffering, caching triggers complex workflows (analytics, notifications), you need guaranteed audit trails, or multiple services must react to conversion events.
+I would consider message queues (RabbitMQ, Redis Streams, AWS SQS) if we you needed guaranteed delivery and retry logic, high write volume requires buffering, caching triggers complex workflows (analytics, notifications), guaranteed audit trails, or multiple services must react to conversion events.
 
 ### API Design Preferences
 
@@ -182,10 +182,10 @@ Consider message queues (RabbitMQ, Redis Streams, AWS SQS) when: you need guaran
 
 Direct SQL queries are used instead of an ORM because this is a single-table cache with two columns. Raw queries provide better performance, direct access to database-specific features (Lua scripts for Redis, PostgreSQL's ON CONFLICT), and explicit SQL that's easier to optimize and debug.
 
-Consider an ORM (TypeORM, Prisma, Sequelize) when: you have complex relations with multiple tables and joins, need automated schema migrations, want compile-time type checking for queries, need standardized patterns for a large team, or are doing rapid prototyping. An ORM would be justified if this project had user accounts, multiple conversion types, audit logs with relationships, or complex reporting.
+I would easily add an ORM if I was dealing with a bit more data and needed the extra tooling an ORM gives me like database maintenance(migrations), type safety etc.
 
 ### Algorithm Simplicity
 
 A simple greedy algorithm with hardcoded value-to-numeral mappings is optimal for Roman numerals: there are only 13 fixed mappings, it provides O(1) space and effectively constant time for the 1-3999 range, and the code is immediately readable and verifiable without abstraction overhead.
 
-If the project needed to support multiple numeral systems, architectural options include: Strategy Pattern with Registry, Plugin Architecture, Rule-Based Engine, or Configuration-Driven approaches. Only add abstraction when you have 3+ conversion types - until then, YAGNI (You Aren't Gonna Need It).
+If the project needed to support multiple numeral systems, architectural options include: Strategy Pattern with Registry, Plugin Architecture, Rule-Based Engine, or Configuration-Driven approaches.
